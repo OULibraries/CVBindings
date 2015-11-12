@@ -1,15 +1,14 @@
 #ifndef _BACKGROUND_SUBTRACTOR_MOG_ACH_
 #define _BACKGROUND_SUBTRACTOR_MOG_ACH_
 
-#include "cv.h"
-#include "opencv2/opencv.hpp"
-
-typedef cv::BackgroundSubtractorMOG2* SubtractorMOG2;
-
+#ifdef __cplusplus
 extern "C" {
-	SubtractorMOG2 createMOG2(int history, double threshold, bool detectShadows);
+#endif
+	void* createMOG2(int history, double threshold, int detectShadows);
 
-	void applyMOG2(SubtractorMOG2 mog2, const CvArr* image, CvArr* fgmask, double learning);
+	void applyMOG2(void* mog2, const CvArr* image, CvArr* fgmask, double learning);
+#ifdef __cplusplus
 }
+#endif
 
 #endif

@@ -11,7 +11,7 @@ cmake .
 make
 ```
 
-## LICENSE
+## License
 
 Copyright (C) 2015, Clinton Freeman
 
