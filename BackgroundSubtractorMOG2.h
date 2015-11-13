@@ -2,11 +2,13 @@
 #define _BACKGROUND_SUBTRACTOR_MOG_ACH_
 
 #ifdef __cplusplus
+	cv::Ptr<cv::BackgroundSubtractor> MOG2;
 extern "C" {
-#endif
-	void* createMOG2(int history, double threshold, int detectShadows);
 
-	void applyMOG2(void* mog2, const CvArr* image, CvArr* fgmask, double learning);
+#endif
+	void initMOG2(int history, double threshold, int detectShadows);
+
+	void applyMOG2(const CvArr* image, CvArr* fgmask);
 #ifdef __cplusplus
 }
 #endif
