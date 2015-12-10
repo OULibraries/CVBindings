@@ -1,4 +1,4 @@
-# MOG2Bindings
+# CVBindings
 
 This is a C binding for the BackgroundSubtractorMOG2 algorithm in OpenCV.
 
