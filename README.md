@@ -11,6 +11,13 @@ cmake .
 make
 ```
 
+## Create debian package
+
+```
+apt-get install dh-make
+dpkg-buildpackage -uc -tc -rfakeroot
+```
+
 ## License
 
 Copyright (C) 2015, Clinton Freeman

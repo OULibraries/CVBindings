@@ -1,0 +1,13 @@
+Source: cvbindings
+Priority: optional
+Maintainer: Clinton <pi@raspberrypi>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.5
+Section: libs
+Homepage: http://measurethefuture.net
+Vcs-Browser: https://github.com/MeasureTheFuture/CVBindings
+
+Package: cvbindings
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: C Bindings for the BackgroundSubtractorMOG2 algorithm in OpenCV

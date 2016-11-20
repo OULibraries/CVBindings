@@ -1,0 +1,2 @@
+CVBindings.h usr/local/include
+libCVBindings.a usr/local/lib
