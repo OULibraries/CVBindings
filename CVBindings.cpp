@@ -78,7 +78,7 @@ extern "C" void stopMeasure() {
 	cvReleaseCapture(&measureCam);
 }
 
-extern "C" void grabFrame(bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea) {
+extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea) {
 	IplImage *nextFrame = cvRetrieveFrame(measureCam, 0);
 	MOG2->apply(cvarrToMat(nextFrame), cvarrToMat(mask));
 
@@ -91,18 +91,21 @@ extern "C" void grabFrame(bool debug, double gaussianSmooth, double foregroundTh
 	CvPoint offset = cvPoint(0, 0);
 
 	int num = cvFindContours(mask, storage, &contours, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, offset);
+	int* objects = (int*) malloc(4*num*sizeof(int));
+	*numObjects = 0;
 
 	while (contours != NULL) {
 		double area = cvContourArea(contours, cvSlice(0, 0x3fffffff), 0);
 
 		// Only track appropriately sized objects.
 		if (area > minArea && area < maxArea) {
-			CvBoundingRect boundingBox = CvBoundingRect(contours, 0);
+			CvRect boundingBox = cvBoundingRect(contours, 0);
 
 			// append results to something we can jam out to Go land.
 		}
 	}
 
+	return objects;
 }
 
 

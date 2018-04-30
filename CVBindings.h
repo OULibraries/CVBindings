@@ -17,7 +17,7 @@ extern "C" {
 					  int camW, int camH,
 					  int mogHistory, double mogThreshold, int mogDetectShadows);
 
-	void grabFrame(bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea);
+	int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea);
 
 	void stopMeasure();
 
