@@ -4,18 +4,29 @@
 #ifdef __cplusplus
 	cv::Ptr<cv::BackgroundSubtractor> MOG2;
 
+	CvCapture *measureCam;
+	IplImage *calibrationFrame;
+	IplImage *mask;
+	bool measuring;
+
 extern "C" {
 #endif
-
 	bool calibrate(const char* srcFile, const char* dstFile, int camW, int camH);
+
+	bool startMeasure(const char* srcFile, const char* calFile,
+					  int camW, int camH,
+					  int mogHistory, double mogThreshold, int mogDetectShadows);
+
+
+
+	void stopMeasure();
 
 	void initMOG2(int history, double threshold, int detectShadows);
 
 	void applyMOG2(const CvArr* image, CvArr* fgmask);
 
-	//void startMeasure(string srcFile)
 	//detectedOb grabFrame(bool debug)
-	//void stopMeasure()
+	//
 #ifdef __cplusplus
 }
 #endif

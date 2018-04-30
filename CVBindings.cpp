@@ -55,6 +55,29 @@ extern "C" bool calibrate(const char* srcFile, const char* dstFile, int camW, in
 	return true;
 }
 
+extern "C" bool startMeasure(const char* srcFile, const char* calFile,
+							 int camW, int camH,
+							 int mogHistory, double mogThreshold, int mogDetectShadows) {
+	measureCam = getVideoSource(srcFile, camW, camH);
+	if (measureCam == NULL) {
+		return false;
+	}
+
+	calibrationFrame = cvLoadImage(calFile, CV_LOAD_IMAGE_COLOR);
+	mask = cvCreateImage(cvSize(calibrationFrame->width, calibrationFrame->height), IPL_DEPTH_8U, 1);
+
+	MOG2 = createBackgroundSubtractorMOG2(mogHistory, mogThreshold, mogDetectShadows);
+	MOG2->apply(cvarrToMat(calibrationFrame), cvarrToMat(mask));
+
+	return true;
+}
+
+extern "C" void stopMeasure() {
+	cvReleaseImage(&mask);
+	cvReleaseImage(&calibrationFrame);
+	cvReleaseCapture(&measureCam);
+}
+
 
 extern "C" void initMOG2(int history, double threshold, int detectShadows) {
 	MOG2 = createBackgroundSubtractorMOG2(history, threshold, detectShadows);
