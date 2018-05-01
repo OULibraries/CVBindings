@@ -79,6 +79,7 @@ extern "C" void stopMeasure() {
 }
 
 extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea) {
+	cvGrabFrame(measureCam);
 	IplImage *nextFrame = cvRetrieveFrame(measureCam, 0);
 	MOG2->apply(cvarrToMat(nextFrame), cvarrToMat(mask));
 
@@ -101,9 +102,28 @@ extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, do
 		if (area > minArea && area < maxArea) {
 			CvRect boundingBox = cvBoundingRect(contours, 0);
 
-			// append results to something we can jam out to Go land.
+			objects[*numObjects] = boundingBox.width / 2;
+			objects[*numObjects + 1] = boundingBox.height / 2;
+			objects[*numObjects + 2] = boundingBox.x + objects[*numObjects];
+			objects[*numObjects + 3] = boundingBox.y + objects[*numObjects + 1];
+
+			*numObjects = *numObjects + 1;
+
+			if (debug) {
+				CvPoint pt1 = cvPoint(boundingBox.x, boundingBox.y);
+				CvPoint pt2 = cvPoint(boundingBox.x+boundingBox.width, boundingBox.y+boundingBox.height);
+				cvDrawContours(nextFrame, contours, cvScalar(12.0, 212.0, 250.0, 255), cvScalar(0, 0, 0, 0), 2, 1, 8, offset);
+				cvRectangle(nextFrame, pt1, pt2, cvScalar(16.0, 8.0, 186.0, 255), 5, 8, 0);
+			}
+		} else {
+			num--;
 		}
+
+		contours = contours->h_next;
 	}
+
+	cvClearMemStorage(storage);
+	cvReleaseMemStorage(&storage);
 
 	return objects;
 }
