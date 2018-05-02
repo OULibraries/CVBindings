@@ -1,7 +1,12 @@
 #ifndef _CV_BINDINGS_ACH_
 #define _CV_BINDINGS_ACH_
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
+	#include "opencv/cv.h"
+	#include "opencv/highgui.h"
+    #include "opencv2/opencv.hpp"
 	cv::Ptr<cv::BackgroundSubtractor> MOG2;
 
 	CvCapture *measureCam;
@@ -17,16 +22,12 @@ extern "C" {
 					  int camW, int camH,
 					  int mogHistory, double mogThreshold, int mogDetectShadows);
 
-	int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea);
+	int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, int dilationIterations, double minArea, double maxArea);
 
 	void stopMeasure();
 
-	void initMOG2(int history, double threshold, int detectShadows);
+	//void renderDebug()
 
-	void applyMOG2(const CvArr* image, CvArr* fgmask);
-
-	//detectedOb grabFrame(bool debug)
-	//
 #ifdef __cplusplus
 }
 #endif

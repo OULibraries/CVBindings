@@ -1,7 +1,4 @@
 
-#include "opencv2/opencv.hpp"
-#include "opencv/cv.h"
-#include "opencv/highgui.h"
 #include "CVBindings.h"
 #include <vector>
 #include <unistd.h>
@@ -78,15 +75,19 @@ extern "C" void stopMeasure() {
 	cvReleaseCapture(&measureCam);
 }
 
-extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, double dilationIterations, double minArea, double maxArea) {
+extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, int dilationIterations, double minArea, double maxArea) {
 	cvGrabFrame(measureCam);
 	IplImage *nextFrame = cvRetrieveFrame(measureCam, 0);
+
+	// Subtract the calibration frame from the current frame.
 	MOG2->apply(cvarrToMat(nextFrame), cvarrToMat(mask));
 
+	// Filter the foreground mask to clean up any noise or holes (morphological-closing).
 	cvSmooth(mask, mask, CV_GAUSSIAN, 3, 0, 0.0, gaussianSmooth);
 	cvThreshold(mask, mask, foregroundThresh, 255, 0);
 	cvDilate(mask, mask, NULL, dilationIterations);
 
+	// Detect contours in filtered foreground mask
 	CvMemStorage *storage = cvCreateMemStorage(0);
 	CvSeq *contours = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 	CvPoint offset = cvPoint(0, 0);
@@ -126,16 +127,4 @@ extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, do
 	cvReleaseMemStorage(&storage);
 
 	return objects;
-}
-
-
-extern "C" void initMOG2(int history, double threshold, int detectShadows) {
-	MOG2 = createBackgroundSubtractorMOG2(history, threshold, detectShadows);
-}
-
-extern "C" void applyMOG2(const CvArr* image, CvArr* fgmask) {
-	Mat img = cvarrToMat(image);
-	Mat mask = cvarrToMat(fgmask);
-
-	MOG2->apply(img, mask);
 }
