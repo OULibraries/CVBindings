@@ -27,27 +27,35 @@ CvCapture* getVideoSource(const char* filename, int frameW, int frameH) {
 	return NULL;
 }
 
+cv::VideoCapture getCapture(const char* filename, int frameW, int frameH) {
+	if (strcmp("", filename) == 0) {
+		// Capture from webcam.
+		cv::VideoCapture camera = cv::VideoCapture(0);
+		camera.set(CV_CAP_PROP_FRAME_WIDTH, frameW);
+		camera.set(CV_CAP_PROP_FRAME_HEIGHT, frameH);
+		//cvSetCaptureProperty(camera, CV_CAP_PROP_BUFFERSIZE, 1);
+
+		return camera;
+	} else {
+		// Capture from file.
+		return cv::VideoCapture(filename);
+	}
+}
+
 extern "C" bool calibrate(const char* srcFile, const char* dstFile, int camW, int camH) {
 	// It takes a little while for the white balance to stabalise on the logitech webCam
 	// So grab a frame, wait to stabalise for white balance to stabalise, then grab again
 	// for and save as the calibration frame.
-	CvCapture *cam = getVideoSource(srcFile, camW, camH);
-	if (cam == NULL) {
-		return false;
-	}
+	cv::VideoCapture cam = getCapture(srcFile, camW, camH);
+	Mat frame;
+	cam >> frame;
 
-	IplImage *calibrationFrame = cvQueryFrame(cam);
 	usleep(1250);
-	cvReleaseCapture(&cam);
 
-	cam = getVideoSource(srcFile, camW, camH);
-	if (cam == NULL) {
-		return false;
-	}
+	cam = getCapture(srcFile, camW, camH);
+	cam >> frame;
 
-	calibrationFrame = cvQueryFrame(cam);
-	cvSaveImage(dstFile, calibrationFrame, NULL);
-	cvReleaseCapture(&cam);
+	cv::imwrite(dstFile, frame);
 
 	return true;
 }
