@@ -33,7 +33,7 @@ cv::VideoCapture getCapture(const char* filename, int frameW, int frameH) {
 		cv::VideoCapture camera = cv::VideoCapture(0);
 		camera.set(CV_CAP_PROP_FRAME_WIDTH, frameW);
 		camera.set(CV_CAP_PROP_FRAME_HEIGHT, frameH);
-		//cvSetCaptureProperty(camera, CV_CAP_PROP_BUFFERSIZE, 1);
+		camera.set(CV_CAP_PROP_BUFFERSIZE, 1);
 
 		return camera;
 	} else {
@@ -52,6 +52,7 @@ extern "C" bool calibrate(const char* srcFile, const char* dstFile, int camW, in
 
 	usleep(1250);
 
+	cam.release();
 	cam = getCapture(srcFile, camW, camH);
 	cam >> frame;
 
