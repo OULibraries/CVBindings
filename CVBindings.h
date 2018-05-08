@@ -7,12 +7,12 @@
 	#include "opencv/cv.h"
 	#include "opencv/highgui.h"
     #include "opencv2/opencv.hpp"
-	cv::Ptr<cv::BackgroundSubtractor> MOG2;
 
-	CvCapture *measureCam;
-	IplImage *calibrationFrame;
-	IplImage *mask;
-	bool measuring;
+	cv::Ptr<cv::BackgroundSubtractor> MOG2;
+	cv::VideoCapture measureCap;
+	cv::Mat calFrame;
+	cv::Mat maskFrame;
+	uint frameNum;
 
 extern "C" {
 #endif

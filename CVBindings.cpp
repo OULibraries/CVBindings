@@ -6,27 +6,6 @@
 using namespace std;
 using namespace cv;
 
-CvCapture* getVideoSource(const char* filename, int frameW, int frameH) {
-	if (strcmp("", filename) == 0) {
-		// Capture from webcam.
-		CvCapture* camera = cvCaptureFromCAM(0);
-		if (camera == NULL) {
-			return NULL; // Unable to get device.
-		}
-
-		cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_WIDTH, frameW);
-		cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_HEIGHT, frameH);
-		cvSetCaptureProperty(camera, CV_CAP_PROP_BUFFERSIZE, 1);
-
-		return camera;
-	} else {
-		// Capture from file.
-		return cvCaptureFromFile(filename);
-	}
-
-	return NULL;
-}
-
 cv::VideoCapture getCapture(const char* filename, int frameW, int frameH) {
 	if (strcmp("", filename) == 0) {
 		// Capture from webcam.
@@ -64,53 +43,44 @@ extern "C" bool calibrate(const char* srcFile, const char* dstFile, int camW, in
 extern "C" bool startMeasure(const char* srcFile, const char* calFile,
 							 int camW, int camH,
 							 int mogHistory, double mogThreshold, int mogDetectShadows) {
-	measureCam = getVideoSource(srcFile, camW, camH);
-	if (measureCam == NULL) {
-		return false;
-	}
-
-	calibrationFrame = cvLoadImage(calFile, CV_LOAD_IMAGE_COLOR);
-	mask = cvCreateImage(cvSize(calibrationFrame->width, calibrationFrame->height), IPL_DEPTH_8U, 1);
+	measureCap = getCapture(srcFile, camW, camH);
+	calFrame = cv::imread(srcFile);
+	maskFrame = cv::Mat(camH, camW, CV_8U);
 
 	MOG2 = createBackgroundSubtractorMOG2(mogHistory, mogThreshold, mogDetectShadows);
-	MOG2->apply(cvarrToMat(calibrationFrame), cvarrToMat(mask));
+	MOG2->apply(calFrame, maskFrame);
+
+	frameNum = 0;
 
 	return true;
 }
 
-extern "C" void stopMeasure() {
-	cvReleaseImage(&mask);
-	cvReleaseImage(&calibrationFrame);
-	cvReleaseCapture(&measureCam);
-}
-
 extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, double foregroundThresh, int dilationIterations, double minArea, double maxArea) {
-	cvGrabFrame(measureCam);
-	IplImage *nextFrame = cvRetrieveFrame(measureCam, 0);
+	Mat nextFrame;
+	measureCap >> nextFrame;
 
 	// Subtract the calibration frame from the current frame.
-	MOG2->apply(cvarrToMat(nextFrame), cvarrToMat(mask));
+	MOG2->apply(nextFrame, maskFrame);
 
 	// Filter the foreground mask to clean up any noise or holes (morphological-closing).
-	cvSmooth(mask, mask, CV_GAUSSIAN, 3, 0, 0.0, gaussianSmooth);
-	cvThreshold(mask, mask, foregroundThresh, 255, 0);
-	cvDilate(mask, mask, NULL, dilationIterations);
+	GaussianBlur(maskFrame, maskFrame, cv::Size(3, 3), gaussianSmooth);
+	threshold(maskFrame, maskFrame, foregroundThresh, 255, THRESH_BINARY);
+	dilate(maskFrame, maskFrame, Mat(), Point(-1, -1), dilationIterations);
 
 	// Detect contours in filtered foreground mask
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
-	CvPoint offset = cvPoint(0, 0);
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	findContours(maskFrame, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
-	int num = cvFindContours(mask, storage, &contours, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, offset);
-	int* objects = (int*) malloc(4*num*sizeof(int));
+	//int num = cvFindContours(mask, storage, &contours, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, offset);
+	int* objects = (int*) malloc(4*contours.size()*sizeof(int));
 	*numObjects = 0;
 
-	while (contours != NULL) {
-		double area = cvContourArea(contours, cvSlice(0, 0x3fffffff), 0);
+	for (int i = 0; i < contours.size(); i++) {
+		double area = contourArea(contours[i]);
 
-		// Only track appropriately sized objects.
 		if (area > minArea && area < maxArea) {
-			CvRect boundingBox = cvBoundingRect(contours, 0);
+			Rect boundingBox = boundingRect(contours[i]);
 
 			objects[*numObjects] = boundingBox.width / 2;
 			objects[*numObjects + 1] = boundingBox.height / 2;
@@ -120,20 +90,20 @@ extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, do
 			*numObjects = *numObjects + 1;
 
 			if (debug) {
-				CvPoint pt1 = cvPoint(boundingBox.x, boundingBox.y);
-				CvPoint pt2 = cvPoint(boundingBox.x+boundingBox.width, boundingBox.y+boundingBox.height);
-				cvDrawContours(nextFrame, contours, cvScalar(12.0, 212.0, 250.0, 255), cvScalar(0, 0, 0, 0), 2, 1, 8, offset);
-				cvRectangle(nextFrame, pt1, pt2, cvScalar(16.0, 8.0, 186.0, 255), 5, 8, 0);
+	 			Point pt1(boundingBox.x, boundingBox.y);
+	 			Point pt2(boundingBox.x+boundingBox.width, boundingBox.y+boundingBox.height);
+
+	 			drawContours(nextFrame, contours, -1, Scalar(12.0, 212.0, 250.0), 5);
+	 			rectangle(nextFrame, pt1, pt2, Scalar(16.0, 8.0, 186.0), 5, 8, 0);
+
+	 			imwrite(to_string(frameNum)+".jpg", nextFrame);
 			}
-		} else {
-			num--;
 		}
-
-		contours = contours->h_next;
 	}
-
-	cvClearMemStorage(storage);
-	cvReleaseMemStorage(&storage);
+	frameNum++;
 
 	return objects;
+}
+
+extern "C" void stopMeasure() {
 }
