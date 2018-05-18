@@ -1,14 +1,34 @@
 # CVBindings
 
-This is a C binding for the BackgroundSubtractorMOG2 algorithm in OpenCV.
+A handful of C bindings for OpenCV 3.0
 
-## Compilation / Installation
-
-The build system for MOG2Bindings is [cmake](https://cmake.org/).
+## Installation of CVBindings binary on the Raspberry Pi
 
 ```
-cmake .
-make
+$ wget https://github.com/MeasureTheFuture/CVBindings/releases/download/3.4.1/cvbindings_3.4.1_armhf.deb
+$ sudo dpkg -i cvbindings_3.4.1_armhf.deb
+```
+
+## Compilation of CVBindings
+
+Install dependencies:
+
+```
+$ sudo apt-get update && sudo apt-get upgrade
+$ sudo apt-get install build-essential cmake pkg-config
+$ sudo apt-get install libjpeg-dev libtiff5-dev libjasper-dev libpng12-dev
+$ sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+$ sudo apt-get install libxvidcore-dev libx264-dev
+$ sudo apt-get install libgtk2.0-dev libgtk-3-dev
+$ sudo apt-get install libatlas-base-dev gfortran
+$ wget https://github.com/MeasureTheFuture/Pi-OpenCV/releases/download/3.4.1/opencv_3.4.1_armhf.deb
+$ sudo dpkg -i opencv_3.4.1_armhf.deb
+```
+
+Compile:
+```
+$ cmake .
+$ make
 ```
 
 ## Create debian package

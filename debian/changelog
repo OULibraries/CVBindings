@@ -1,5 +1,5 @@
-cvbindings (3.2.0) unstable; urgency=low
+cvbindings (3.4.1) unstable; urgency=low
 
-  * Initial Release.
+  * Upgraded to OpenCV 3.4.1
 
  -- unknown <pi@raspberrypi>  Tue, 15 Nov 2016 03:09:56 +0000

@@ -31,11 +31,14 @@ extern "C" bool calibrate(const char* srcFile, const char* dstFile, int camW, in
 
 	usleep(1250);
 
+	frame.release();
 	cam.release();
 	cam = getCapture(srcFile, camW, camH);
 	cam >> frame;
+	cam.release();
 
 	cv::imwrite(dstFile, frame);
+	frame.release();
 
 	return true;
 }
@@ -101,9 +104,13 @@ extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, do
 		}
 	}
 	frameNum++;
+	nextFrame.release();
 
 	return objects;
 }
 
 extern "C" void stopMeasure() {
+	maskFrame.release();
+	calFrame.release();
+	measureCap.release();
 }
