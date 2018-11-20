@@ -84,11 +84,11 @@ extern "C" int* grabFrame(int* numObjects, bool debug, double gaussianSmooth, do
 
 		if (area > minArea && area < maxArea) {
 			Rect boundingBox = boundingRect(contours[i]);
-
-			objects[*numObjects] = boundingBox.width / 2;
-			objects[*numObjects + 1] = boundingBox.height / 2;
-			objects[*numObjects + 2] = boundingBox.x + objects[*numObjects];
-			objects[*numObjects + 3] = boundingBox.y + objects[*numObjects + 1];
+			//invert array insertions to match defintions in waypoints.go
+			objects[*numObjects] = boundingBox.x + objects[*numObjects];
+			objects[*numObjects + 1] =  boundingBox.y + objects[*numObjects + 1];
+			objects[*numObjects + 2] = boundingBox.width / 2;
+			objects[*numObjects + 3] = boundingBox.height / 2;
 
 			*numObjects = *numObjects + 1;
 
